@@ -2,23 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Swapify - Sign In</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      document.getElementById("signInForm").addEventListener("submit", function(event) {
+    class UserService {
+      constructor() {
+        this.users = JSON.parse(localStorage.getItem("users")) || [];
+      }
+
+      authenticate(email, password) {
+        return this.users.find(user => user.email === email && user.password === password);
+      }
+
+      storeLoginSession(user) {
+        localStorage.setItem("loggedIn", "true");
+        localStorage.setItem("loggedInEmail", user.email);
+        localStorage.setItem("userName", user.name);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const userService = new UserService();
+
+      const signInForm = document.getElementById("signInForm");
+      const forgotPasswordBtn = document.getElementById("forgotPassword");
+
+      signInForm.addEventListener("submit", event => {
         event.preventDefault();
 
-        const email = document.getElementById("email").value;
+        const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value;
-        const users = JSON.parse(localStorage.getItem("users")) || [];
-        const user = users.find(u => u.email === email && u.password === password);
+
+        const user = userService.authenticate(email, password);
 
         if (user) {
-          localStorage.setItem("loggedIn", "true");
-          localStorage.setItem("loggedInEmail", email);
-          localStorage.setItem("userName", user.name); // ✅ Save the name
+          userService.storeLoginSession(user);
           alert("Sign-In successful!");
           window.location.href = "index.html";
         } else {
@@ -26,46 +45,43 @@
         }
       });
 
-      document.getElementById("forgotPassword").addEventListener("click", function() {
+      forgotPasswordBtn.addEventListener("click", () => {
         alert("Forgot Password functionality is not yet implemented!");
       });
     });
   </script>
 </head>
 <body>
-  <!-- NAVIGATION BAR -->
   <header class="navbar">
     <div class="nav-left">
-      <img src="images/logo.png" alt="Swapify Logo" class="nav-logo">
+      <img src="images/logo.png" alt="Swapify Logo" class="nav-logo" />
       <nav class="nav-links">
         <a href="index.html">Home</a>
       </nav>
     </div>
   </header>
 
-  <!-- SIGN IN FORM -->
   <main class="form-container">
     <h1>Sign In</h1>
     <form id="signInForm" class="form">
-      <input type="email" id="email" placeholder="Email" required>
-      <input type="password" id="password" placeholder="Password" required>
-      
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+
       <button type="submit">Sign In</button>
       <button id="forgotPassword" type="button" class="secondary-button">Forgot Password?</button>
-      
+
       <p class="form-text">
-        Don't have an account? 
-        <a href="signup.html" style="color: var(--accent-color); text-decoration: none;">Create one</a>
+        Don't have an account?
+        <a href="signup.html" class="accent-link">Create one</a>
       </p>
     </form>
   </main>
 
-  <!-- FOOTER -->
   <footer>
     <div class="social-icons">
-      <a href="#"><img src="images/facebook-icon.png" alt="Facebook" class="social-icon"></a>
-      <a href="#"><img src="images/twitter-icon.png" alt="X (Twitter)" class="social-icon"></a>
-      <a href="#"><img src="images/instagram-icon.png" alt="Instagram" class="social-icon"></a>
+      <a href="#"><img src="images/facebook-icon.png" alt="Facebook" class="social-icon" /></a>
+      <a href="#"><img src="images/twitter-icon.png" alt="X (Twitter)" class="social-icon" /></a>
+      <a href="#"><img src="images/instagram-icon.png" alt="Instagram" class="social-icon" /></a>
     </div>
     <p>© 2025 Swapify. All rights reserved.</p>
   </footer>
