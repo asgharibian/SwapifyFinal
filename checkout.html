@@ -13,7 +13,7 @@
         window.location.href = "signin.html";
       }
 
-      // ==================== NAVIGATION DYNAMIC ADJUST ====================
+      // ==================== DOM MANIPULATION ON LOAD ====================
       document.addEventListener("DOMContentLoaded", function () {
         const nav = document.querySelector(".navbar nav");
         nav.style.position = "absolute";
@@ -22,111 +22,113 @@
         nav.style.transform = "translateX(-50%)";
       });
 
-      // ==================== FAVORITES: ADD ====================
-      function addToFavorites(button, itemName, itemImage) {
-        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-        const exists = favorites.find(item => item.name === itemName);
+      // ==================== CLASS: Favorites ====================
+      class Favorites {
+        constructor() {
+          this.key = "favorites";
+          this.favorites = JSON.parse(localStorage.getItem(this.key)) || [];
+        }
 
-        if (!exists) {
-          favorites.push({ name: itemName, image: itemImage });
-          localStorage.setItem("favorites", JSON.stringify(favorites));
-          button.style.color = "black";
-          button.style.backgroundColor = "red";
-          alert(`${itemName} has been added to your favorites.`);
-        } else {
-          alert(`${itemName} is already in your favorites.`);
+        add(itemName, itemImage, button) {
+          if (!this.favorites.find(item => item.name === itemName)) {
+            this.favorites.push({ name: itemName, image: itemImage });
+            localStorage.setItem(this.key, JSON.stringify(this.favorites));
+            button.style.color = "black";
+            button.style.backgroundColor = "red";
+            alert(`${itemName} has been added to your favorites.`);
+          } else {
+            alert(`${itemName} is already in your favorites.`);
+          }
+        }
+
+        remove(itemName) {
+          this.favorites = this.favorites.filter(item => item.name !== itemName);
+          localStorage.setItem(this.key, JSON.stringify(this.favorites));
+          this.view();
+        }
+
+        view() {
+          const container = document.getElementById("favoritesContainer");
+          container.innerHTML = "";
+          if (this.favorites.length === 0) {
+            container.innerHTML = "<p>Your favorites list is empty.</p>";
+          } else {
+            const ul = document.createElement("ul");
+            this.favorites.forEach(item => {
+              const li = document.createElement("li");
+              li.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
+                ${item.name}
+                <button onclick="favorites.remove('${item.name}')">Remove</button>
+              `;
+              ul.appendChild(li);
+            });
+            container.appendChild(ul);
+          }
+          document.getElementById("favoritesModal").style.display = "block";
+        }
+
+        close() {
+          document.getElementById("favoritesModal").style.display = "none";
         }
       }
 
-      // ==================== FAVORITES: REMOVE ====================
-      function removeFromFavorites(itemName) {
-        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-        const updatedFavorites = favorites.filter(item => item.name !== itemName);
-        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-        viewFavorites();
-      }
-
-      // ==================== FAVORITES: VIEW ====================
-      function viewFavorites() {
-        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-        const favoritesContainer = document.getElementById("favoritesContainer");
-        favoritesContainer.innerHTML = "";
-
-        if (favorites.length === 0) {
-          favoritesContainer.innerHTML = "<p>Your favorites list is empty.</p>";
-        } else {
-          const ul = document.createElement("ul");
-          favorites.forEach(item => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
-              ${item.name}
-              <button onclick="removeFromFavorites('${item.name}')">Remove</button>
-            `;
-            ul.appendChild(li);
-          });
-          favoritesContainer.appendChild(ul);
+      // ==================== CLASS: Cart ====================
+      class Cart {
+        constructor() {
+          this.key = "cart";
+          this.cart = JSON.parse(localStorage.getItem(this.key)) || [];
         }
 
-        document.getElementById("favoritesModal").style.display = "block";
-      }
-
-      function closeFavorites() {
-        document.getElementById("favoritesModal").style.display = "none";
-      }
-
-      // ==================== CART: ADD ====================
-      function addToCart(itemName, itemImage) {
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-        cart.push({ name: itemName, image: itemImage });
-        localStorage.setItem("cart", JSON.stringify(cart));
-        alert(`${itemName} has been added to your cart.`);
-      }
-
-      // ==================== CART: REMOVE ====================
-      function removeFromCart(itemName) {
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-        const updatedCart = cart.filter(item => item.name !== itemName);
-        localStorage.setItem("cart", JSON.stringify(updatedCart));
-        viewCart();
-      }
-
-      // ==================== CART: VIEW ====================
-      function viewCart() {
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-        const cartContainer = document.getElementById("cartContainer");
-        cartContainer.innerHTML = "";
-
-        if (cart.length === 0) {
-          cartContainer.innerHTML = "<p>Your cart is empty.</p>";
-        } else {
-          const ul = document.createElement("ul");
-          cart.forEach(item => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
-              ${item.name}
-              <button onclick="removeFromCart('${item.name}')">Remove</button>
-            `;
-            ul.appendChild(li);
-          });
-          cartContainer.appendChild(ul);
+        add(itemName, itemImage) {
+          this.cart.push({ name: itemName, image: itemImage });
+          localStorage.setItem(this.key, JSON.stringify(this.cart));
+          alert(`${itemName} has been added to your cart.`);
         }
 
-        document.getElementById("cartModal").style.display = "block";
+        remove(itemName) {
+          this.cart = this.cart.filter(item => item.name !== itemName);
+          localStorage.setItem(this.key, JSON.stringify(this.cart));
+          this.view();
+        }
+
+        view() {
+          const container = document.getElementById("cartContainer");
+          container.innerHTML = "";
+          if (this.cart.length === 0) {
+            container.innerHTML = "<p>Your cart is empty.</p>";
+          } else {
+            const ul = document.createElement("ul");
+            this.cart.forEach(item => {
+              const li = document.createElement("li");
+              li.innerHTML = `
+                <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
+                ${item.name}
+                <button onclick="cart.remove('${item.name}')">Remove</button>
+              `;
+              ul.appendChild(li);
+            });
+            container.appendChild(ul);
+          }
+          document.getElementById("cartModal").style.display = "block";
+        }
+
+        close() {
+          document.getElementById("cartModal").style.display = "none";
+        }
       }
 
-      function closeCart() {
-        document.getElementById("cartModal").style.display = "none";
-      }
+      // ==================== INSTANTIATE OBJECTS ====================
+      const favorites = new Favorites();
+      const cart = new Cart();
 
       // ==================== SEARCH FUNCTIONALITY ====================
       function searchItems() {
-        const query = document.getElementById('searchBar').value.toLowerCase();
-        const listings = document.querySelectorAll('.listing');
+        const query = document.getElementById("searchBar").value.toLowerCase();
+        const listings = document.querySelectorAll(".listing");
         listings.forEach(listing => {
-          const itemName = listing.querySelector('strong').innerText.toLowerCase();
-          listing.style.display = itemName.includes(query) ? 'block' : 'none';
+          const itemName = listing.querySelector("strong").innerText.toLowerCase();
+          listing.style.display = itemName.includes(query) ? "block" : "none";
         });
       }
     </script>
@@ -142,8 +144,8 @@
         <a href="signup.html">Sign Up</a>
       </nav>
       <div style="position: absolute; top: 10px; right: 20px; display: flex; gap: 10px;">
-        <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()" style="cursor: pointer;" />
-        <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()" style="cursor: pointer;" />
+        <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="favorites.view()" style="cursor: pointer;" />
+        <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="cart.view()" style="cursor: pointer;" />
       </div>
     </header>
 
@@ -156,22 +158,22 @@
       <li class="listing">
         <img src="images/item1.jpg" alt="Item 1" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;" />
         <strong>Item 1</strong> - $10
-        <button onclick="addToCart('Item 1', 'images/item1.jpg')">Add to Cart</button>
-        <span onclick="addToFavorites(this, 'Item 1', 'images/item1.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
+        <button onclick="cart.add('Item 1', 'images/item1.jpg')">Add to Cart</button>
+        <span onclick="favorites.add(this, 'Item 1', 'images/item1.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
       </li>
 
       <li class="listing">
         <img src="images/item2.jpg" alt="Item 2" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;" />
         <strong>Item 2</strong> - $15
-        <button onclick="addToCart('Item 2', 'images/item2.jpg')">Add to Cart</button>
-        <span onclick="addToFavorites(this, 'Item 2', 'images/item2.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
+        <button onclick="cart.add('Item 2', 'images/item2.jpg')">Add to Cart</button>
+        <span onclick="favorites.add(this, 'Item 2', 'images/item2.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
       </li>
 
       <li class="listing">
         <img src="images/item3.jpg" alt="Item 3" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;" />
         <strong>Item 3</strong> - $20
-        <button onclick="addToCart('Item 3', 'images/item3.jpg')">Add to Cart</button>
-        <span onclick="addToFavorites(this, 'Item 3', 'images/item3.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
+        <button onclick="cart.add('Item 3', 'images/item3.jpg')">Add to Cart</button>
+        <span onclick="favorites.add(this, 'Item 3', 'images/item3.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
       </li>
     </ul>
 
@@ -179,14 +181,14 @@
     <div id="cartModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 2px solid #ddd; padding: 20px; border-radius: 10px; z-index: 1000; max-width: 400px; text-align: center;">
       <h2>Your Cart</h2>
       <div id="cartContainer"></div>
-      <button onclick="closeCart()">Close</button>
+      <button onclick="cart.close()">Close</button>
     </div>
 
     <!-- ==================== FAVORITES MODAL ==================== -->
     <div id="favoritesModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 2px solid #ddd; padding: 20px; border-radius: 10px; z-index: 1000; max-width: 400px; text-align: center;">
       <h2>Your Favorites</h2>
       <div id="favoritesContainer"></div>
-      <button onclick="closeFavorites()">Close</button>
+      <button onclick="favorites.close()">Close</button>
     </div>
   </body>
 </html>
