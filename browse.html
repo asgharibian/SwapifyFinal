@@ -1,225 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Swapify - Browse Listings</title>
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <header class="navbar">
-    <div class="nav-left">
-      <img src="images/logo.png" alt="Swapify Logo" class="nav-logo">
-      <nav class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="browse.html">Browse</a>
-        <a href="#" onclick="redirectToPost()">Post a Listing</a>
-      </nav>
+  <head>
+    <!-- ==================== METADATA & STYLES ==================== -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swapify - Browse Listings</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+
+  <body>
+    <!-- ==================== NAVIGATION BAR ==================== -->
+    <header class="navbar">
+      <div class="nav-left">
+        <img src="images/logo.png" alt="Swapify Logo" class="nav-logo">
+        <nav class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="browse.html">Browse</a>
+          <a href="#" onclick="redirectToPost()">Post a Listing</a>
+        </nav>
+      </div>
+      <div class="nav-right" id="navUserSection">
+        <button onclick="window.location.href='signin.html'" id="signInBtn">Sign In</button>
+        <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()">
+        <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()">
+      </div>
+    </header>
+
+    <!-- ==================== MAIN LISTING AREA ==================== -->
+    <main>
+      <h1>Browse Listings</h1>
+      <section class="search-area">
+        <input type="text" id="searchBar" placeholder="Search items..." onkeyup="searchItems()">
+      </section>
+
+      <section class="recent-listings">
+        <ul id="listings" class="product-grid">
+          <!-- Listings will be populated here -->
+        </ul>
+      </section>
+    </main>
+
+    <!-- ==================== CART MODAL ==================== -->
+    <div id="cartModal" class="modal">
+      <h2>Your Cart</h2>
+      <div id="cartContainer"></div>
+      <button onclick="closeCart()">Close</button>
     </div>
-    <div class="nav-right" id="navUserSection">
-      <button onclick="window.location.href='signin.html'" id="signInBtn">Sign In</button>
-      <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()">
-      <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()">
+
+    <!-- ==================== FAVORITES MODAL ==================== -->
+    <div id="favoritesModal" class="modal">
+      <h2>Your Favorites</h2>
+      <div id="favoritesContainer"></div>
+      <button onclick="closeFavorites()">Close</button>
     </div>
-  </header>
 
-  <main>
-    <h1>Browse Listings</h1>
-    <section class="search-area">
-      <input type="text" id="searchBar" placeholder="Search items..." onkeyup="searchItems()">
-    </section>
+    <!-- ==================== SCRIPT SECTION ==================== -->
+    <script>
+      // ==================== DOMContentLoaded HANDLER ====================
+      document.addEventListener("DOMContentLoaded", () => {
+        const isLoggedIn = localStorage.getItem("loggedIn") === "true";
+        const userName = localStorage.getItem("userName");
 
-    <section class="recent-listings">
-      <ul id="listings" class="product-grid">
-        <!-- Listings will be populated here -->
-      </ul>
-    </section>
-  </main>
-
-  <!-- CART MODAL -->
-  <div id="cartModal" class="modal">
-    <h2>Your Cart</h2>
-    <div id="cartContainer"></div>
-    <button onclick="closeCart()">Close</button>
-  </div>
-
-  <!-- FAVORITES MODAL -->
-  <div id="favoritesModal" class="modal">
-    <h2>Your Favorites</h2>
-    <div id="favoritesContainer"></div>
-    <button onclick="closeFavorites()">Close</button>
-  </div>
-
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const isLoggedIn = localStorage.getItem("loggedIn") === "true";
-      const userName = localStorage.getItem("userName");
-
-      if (isLoggedIn && userName) {
-        document.getElementById("navUserSection").innerHTML = `
-          <span style="font-weight: bold;">Welcome, ${userName.split(" ")[0]}</span>
-          <button onclick="logout()" style="margin-left: 10px;">Log Out</button>
-          <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()">
-          <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()">
-        `;
-      }
-
-      const listings = document.getElementById("listings");
-      const customListings = JSON.parse(localStorage.getItem("customListings")) || [];
-      customListings.forEach(item => {
-        const li = document.createElement("li");
-        li.classList.add("listing");
-        let buttonsHTML = `
-          <button onclick="handleAddToCart('${item.title}', '${item.image}')">Add to Cart</button>
-          <span onclick="handleAddToFavorites(this, '${item.title}', '${item.image}')" class="favorite-icon">&#9829;</span>
-        `;
-        const currentUserEmail = localStorage.getItem("loggedInEmail");
-        if (item.ownerEmail && item.ownerEmail === currentUserEmail) {
-          buttonsHTML += `<button onclick=\"handleDeleteListing(this)\">Delete</button>`;
+        if (isLoggedIn && userName) {
+          document.getElementById("navUserSection").innerHTML = `
+            <span style="font-weight: bold;">Welcome, ${userName.split(" ")[0]}</span>
+            <button onclick="logout()" style="margin-left: 10px;">Log Out</button>
+            <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()">
+            <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()">
+          `;
         }
-        li.innerHTML = `
-          <img src="${item.image}" alt="${item.title}" class="listing-img">
-          <strong>${item.title}</strong> - $${item.price}
-          ${buttonsHTML}
-        `;
-        listings.appendChild(li);
+
+        const listings = document.getElementById("listings");
+        const customListings = JSON.parse(localStorage.getItem("customListings")) || [];
+        customListings.forEach(item => {
+          const li = document.createElement("li");
+          li.classList.add("listing");
+
+          let buttonsHTML = `
+            <button onclick="handleAddToCart('${item.title}', '${item.image}')">Add to Cart</button>
+            <span onclick="handleAddToFavorites(this, '${item.title}', '${item.image}')" class="favorite-icon">&#9829;</span>
+          `;
+
+          const currentUserEmail = localStorage.getItem("loggedInEmail");
+          if (item.ownerEmail && item.ownerEmail === currentUserEmail) {
+            buttonsHTML += `<button onclick=\"handleDeleteListing(this)\">Delete</button>`;
+          }
+
+          li.innerHTML = `
+            <img src="${item.image}" alt="${item.title}" class="listing-img">
+            <strong>${item.title}</strong> - $${item.price}
+            ${buttonsHTML}
+          `;
+          listings.appendChild(li);
+        });
       });
-    });
 
-    function logout() {
-      localStorage.removeItem("loggedIn");
-      localStorage.removeItem("userName");
-      localStorage.removeItem("loggedInEmail");
-      alert("You have been logged out.");
-      window.location.href = "index.html";
-    }
-
-    function redirectToPost() {
-      const isLoggedIn = localStorage.getItem("loggedIn") === "true";
-      if (!isLoggedIn) {
-        alert("Please sign in to post a listing.");
-        window.location.href = "signin.html";
-      } else {
-        window.location.href = "create.html";
+      // ==================== AUTH & NAVIGATION ====================
+      function logout() {
+        localStorage.removeItem("loggedIn");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("loggedInEmail");
+        alert("You have been logged out.");
+        window.location.href = "index.html";
       }
-    }
 
-    function handleAddToCart(name, image) {
-      if (localStorage.getItem("loggedIn") !== "true") {
-        alert("Please sign in to use the cart.");
-        window.location.href = "signin.html";
-      } else {
-        const cart = JSON.parse(localStorage.getItem("cart")) || [];
-        cart.push({ name, image });
-        localStorage.setItem("cart", JSON.stringify(cart));
-        alert(`${name} added to cart.`);
-      }
-    }
-
-    function handleAddToFavorites(button, name, image) {
-      if (localStorage.getItem("loggedIn") !== "true") {
-        alert("Please sign in to use favorites.");
-        window.location.href = "signin.html";
-      } else {
-        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-        const exists = favorites.find(item => item.name === name);
-        if (!exists) {
-          favorites.push({ name, image });
-          localStorage.setItem("favorites", JSON.stringify(favorites));
-          button.style.color = "black";
-          button.style.backgroundColor = "red";
-          alert(`${name} added to favorites.`);
+      function redirectToPost() {
+        const isLoggedIn = localStorage.getItem("loggedIn") === "true";
+        if (!isLoggedIn) {
+          alert("Please sign in to post a listing.");
+          window.location.href = "signin.html";
         } else {
-          alert(`${name} is already in your favorites.`);
+          window.location.href = "create.html";
         }
       }
-    }
 
-    function viewCart() {
-      const cart = JSON.parse(localStorage.getItem("cart")) || [];
-      const cartContainer = document.getElementById("cartContainer");
-      cartContainer.innerHTML = "";
-      if (cart.length === 0) {
-        cartContainer.innerHTML = "<p>Your cart is empty.</p>";
-      } else {
-        const ul = document.createElement("ul");
-        cart.forEach(item => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
-            ${item.name}
-            <button onclick="removeFromCart('${item.name}')">Remove</button>
-          `;
-          ul.appendChild(li);
-        });
-        cartContainer.appendChild(ul);
+      // ==================== CART FUNCTIONALITY ====================
+      function handleAddToCart(name, image) {
+        if (localStorage.getItem("loggedIn") !== "true") {
+          alert("Please sign in to use the cart.");
+          window.location.href = "signin.html";
+        } else {
+          const cart = JSON.parse(localStorage.getItem("cart")) || [];
+          cart.push({ name, image });
+          localStorage.setItem("cart", JSON.stringify(cart));
+          alert(`${name} added to cart.`);
+        }
       }
-      document.getElementById("cartModal").style.display = "block";
-    }
 
-    function closeCart() {
-      document.getElementById("cartModal").style.display = "none";
-    }
-
-    function removeFromCart(name) {
-      let cart = JSON.parse(localStorage.getItem("cart")) || [];
-      cart = cart.filter(item => item.name !== name);
-      localStorage.setItem("cart", JSON.stringify(cart));
-      viewCart();
-    }
-
-    function viewFavorites() {
-      const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-      const favoritesContainer = document.getElementById("favoritesContainer");
-      favoritesContainer.innerHTML = "";
-      if (favorites.length === 0) {
-        favoritesContainer.innerHTML = "<p>Your favorites list is empty.</p>";
-      } else {
-        const ul = document.createElement("ul");
-        favorites.forEach(item => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-            <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
-            ${item.name}
-            <button onclick="removeFromFavorites('${item.name}')">Remove</button>
-          `;
-          ul.appendChild(li);
-        });
-        favoritesContainer.appendChild(ul);
+      function viewCart() {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const cartContainer = document.getElementById("cartContainer");
+        cartContainer.innerHTML = "";
+        if (cart.length === 0) {
+          cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+        } else {
+          const ul = document.createElement("ul");
+          cart.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
+              ${item.name}
+              <button onclick="removeFromCart('${item.name}')">Remove</button>
+            `;
+            ul.appendChild(li);
+          });
+          cartContainer.appendChild(ul);
+        }
+        document.getElementById("cartModal").style.display = "block";
       }
-      document.getElementById("favoritesModal").style.display = "block";
-    }
 
-    function closeFavorites() {
-      document.getElementById("favoritesModal").style.display = "none";
-    }
+      function closeCart() {
+        document.getElementById("cartModal").style.display = "none";
+      }
 
-    function removeFromFavorites(name) {
-      let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-      favorites = favorites.filter(item => item.name !== name);
-      localStorage.setItem("favorites", JSON.stringify(favorites));
-      viewFavorites();
-    }
-  function handleDeleteListing(button) {
-  const currentUserEmail = localStorage.getItem("loggedInEmail");
-  const listing = button.closest(".listing");
-  const title = listing.querySelector("strong").innerText;
-  let listings = JSON.parse(localStorage.getItem("customListings")) || [];
-  const listingToDelete = listings.find(item => item.title === title);
+      function removeFromCart(name) {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        cart = cart.filter(item => item.name !== name);
+        localStorage.setItem("cart", JSON.stringify(cart));
+        viewCart();
+      }
 
-  if (!listingToDelete || listingToDelete.ownerEmail !== currentUserEmail) {
-    alert("You can only delete your own listings.");
-    return;
-  }
+      // ==================== FAVORITES FUNCTIONALITY ====================
+      function handleAddToFavorites(button, name, image) {
+        if (localStorage.getItem("loggedIn") !== "true") {
+          alert("Please sign in to use favorites.");
+          window.location.href = "signin.html";
+        } else {
+          const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+          const exists = favorites.find(item => item.name === name);
+          if (!exists) {
+            favorites.push({ name, image });
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+            button.style.color = "black";
+            button.style.backgroundColor = "red";
+            alert(`${name} added to favorites.`);
+          } else {
+            alert(`${name} is already in your favorites.`);
+          }
+        }
+      }
 
-  if (confirm(`Are you sure you want to delete '${title}'?`)) {
-    listing.remove();
-    listings = listings.filter(item => !(item.title === title && item.ownerEmail === currentUserEmail));
-    localStorage.setItem("customListings", JSON.stringify(listings));
-    alert("Listing deleted.");
-  }
-}
+      function viewFavorites() {
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const favoritesContainer = document.getElementById("favoritesContainer");
+        favoritesContainer.innerHTML = "";
+        if (favorites.length === 0) {
+          favoritesContainer.innerHTML = "<p>Your favorites list is empty.</p>";
+        } else {
+          const ul = document.createElement("ul");
+          favorites.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
+              ${item.name}
+              <button onclick="removeFromFavorites('${item.name}')">Remove</button>
+            `;
+            ul.appendChild(li);
+          });
+          favoritesContainer.appendChild(ul);
+        }
+        document.getElementById("favoritesModal").style.display = "block";
+      }
 
-</script>
-</body>
+      function closeFavorites() {
+        document.getElementById("favoritesModal").style.display = "none";
+      }
+
+      function removeFromFavorites(name) {
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        favorites = favorites.filter(item => item.name !== name);
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+        viewFavorites();
+      }
+
+      // ==================== LISTING DELETION ====================
+      function handleDeleteListing(button) {
+        const currentUserEmail = localStorage.getItem("loggedInEmail");
+        const listing = button.closest(".listing");
+        const title = listing.querySelector("strong").innerText;
+        let listings = JSON.parse(localStorage.getItem("customListings")) || [];
+        const listingToDelete = listings.find(item => item.title === title);
+
+        if (!listingToDelete || listingToDelete.ownerEmail !== currentUserEmail) {
+          alert("You can only delete your own listings.");
+          return;
+        }
+
+        if (confirm(`Are you sure you want to delete '${title}'?`)) {
+          listing.remove();
+          listings = listings.filter(item => !(item.title === title && item.ownerEmail === currentUserEmail));
+          localStorage.setItem("customListings", JSON.stringify(listings));
+          alert("Listing deleted.");
+        }
+      }
+    </script>
+  </body>
 </html>
