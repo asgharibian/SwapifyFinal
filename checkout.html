@@ -1,172 +1,192 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
+    <!-- ==================== METADATA & HEAD ==================== -->
     <title>Swapify - Browse Listings</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
+
+    <!-- ==================== AUTH & SCRIPT LOGIC ==================== -->
     <script>
-        if (localStorage.getItem("loggedIn") !== "true") {
-            alert("You must sign in to access this page.");
-            window.location.href = "signin.html";
+      // ==================== ACCESS CONTROL ====================
+      if (localStorage.getItem("loggedIn") !== "true") {
+        alert("You must sign in to access this page.");
+        window.location.href = "signin.html";
+      }
+
+      // ==================== NAVIGATION DYNAMIC ADJUST ====================
+      document.addEventListener("DOMContentLoaded", function () {
+        const nav = document.querySelector(".navbar nav");
+        nav.style.position = "absolute";
+        nav.style.top = "10px";
+        nav.style.left = "50%";
+        nav.style.transform = "translateX(-50%)";
+      });
+
+      // ==================== FAVORITES: ADD ====================
+      function addToFavorites(button, itemName, itemImage) {
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const exists = favorites.find(item => item.name === itemName);
+
+        if (!exists) {
+          favorites.push({ name: itemName, image: itemImage });
+          localStorage.setItem("favorites", JSON.stringify(favorites));
+          button.style.color = "black";
+          button.style.backgroundColor = "red";
+          alert(`${itemName} has been added to your favorites.`);
+        } else {
+          alert(`${itemName} is already in your favorites.`);
+        }
+      }
+
+      // ==================== FAVORITES: REMOVE ====================
+      function removeFromFavorites(itemName) {
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const updatedFavorites = favorites.filter(item => item.name !== itemName);
+        localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
+        viewFavorites();
+      }
+
+      // ==================== FAVORITES: VIEW ====================
+      function viewFavorites() {
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const favoritesContainer = document.getElementById("favoritesContainer");
+        favoritesContainer.innerHTML = "";
+
+        if (favorites.length === 0) {
+          favoritesContainer.innerHTML = "<p>Your favorites list is empty.</p>";
+        } else {
+          const ul = document.createElement("ul");
+          favorites.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
+              ${item.name}
+              <button onclick="removeFromFavorites('${item.name}')">Remove</button>
+            `;
+            ul.appendChild(li);
+          });
+          favoritesContainer.appendChild(ul);
         }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            // Move navigation items dynamically on Browse page
-            const nav = document.querySelector(".navbar nav");
-            nav.style.position = "absolute";
-            nav.style.top = "10px";
-            nav.style.left = "50%";
-            nav.style.transform = "translateX(-50%)"; // Centers the nav items in the middle
+        document.getElementById("favoritesModal").style.display = "block";
+      }
+
+      function closeFavorites() {
+        document.getElementById("favoritesModal").style.display = "none";
+      }
+
+      // ==================== CART: ADD ====================
+      function addToCart(itemName, itemImage) {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        cart.push({ name: itemName, image: itemImage });
+        localStorage.setItem("cart", JSON.stringify(cart));
+        alert(`${itemName} has been added to your cart.`);
+      }
+
+      // ==================== CART: REMOVE ====================
+      function removeFromCart(itemName) {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const updatedCart = cart.filter(item => item.name !== itemName);
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+        viewCart();
+      }
+
+      // ==================== CART: VIEW ====================
+      function viewCart() {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const cartContainer = document.getElementById("cartContainer");
+        cartContainer.innerHTML = "";
+
+        if (cart.length === 0) {
+          cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+        } else {
+          const ul = document.createElement("ul");
+          cart.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
+              ${item.name}
+              <button onclick="removeFromCart('${item.name}')">Remove</button>
+            `;
+            ul.appendChild(li);
+          });
+          cartContainer.appendChild(ul);
+        }
+
+        document.getElementById("cartModal").style.display = "block";
+      }
+
+      function closeCart() {
+        document.getElementById("cartModal").style.display = "none";
+      }
+
+      // ==================== SEARCH FUNCTIONALITY ====================
+      function searchItems() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        const listings = document.querySelectorAll('.listing');
+        listings.forEach(listing => {
+          const itemName = listing.querySelector('strong').innerText.toLowerCase();
+          listing.style.display = itemName.includes(query) ? 'block' : 'none';
         });
-
-        // Add to Favorites
-        function addToFavorites(button, itemName, itemImage) {
-            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-            const exists = favorites.find(item => item.name === itemName);
-
-            if (!exists) {
-                favorites.push({ name: itemName, image: itemImage });
-                localStorage.setItem("favorites", JSON.stringify(favorites));
-                button.style.color = "black"; // Black outline
-                button.style.backgroundColor = "red"; // Red fill
-                alert(`${itemName} has been added to your favorites.`);
-            } else {
-                alert(`${itemName} is already in your favorites.`);
-            }
-        }
-
-        function removeFromFavorites(itemName) {
-            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-            const updatedFavorites = favorites.filter(item => item.name !== itemName);
-            localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-            viewFavorites();
-        }
-
-        function viewFavorites() {
-            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
-            const favoritesContainer = document.getElementById("favoritesContainer");
-            favoritesContainer.innerHTML = ""; // Clear previous favorite items
-
-            if (favorites.length === 0) {
-                favoritesContainer.innerHTML = "<p>Your favorites list is empty.</p>";
-            } else {
-                const ul = document.createElement("ul");
-                favorites.forEach(item => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
-                        ${item.name}
-                        <button onclick="removeFromFavorites('${item.name}')">Remove</button>
-                    `;
-                    ul.appendChild(li);
-                });
-                favoritesContainer.appendChild(ul);
-            }
-
-            document.getElementById("favoritesModal").style.display = "block";
-        }
-
-        function closeFavorites() {
-            document.getElementById("favoritesModal").style.display = "none";
-        }
-
-        function addToCart(itemName, itemImage) {
-            const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            cart.push({ name: itemName, image: itemImage });
-            localStorage.setItem("cart", JSON.stringify(cart));
-            alert(`${itemName} has been added to your cart.`);
-        }
-
-        function removeFromCart(itemName) {
-            const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const updatedCart = cart.filter(item => item.name !== itemName);
-            localStorage.setItem("cart", JSON.stringify(updatedCart));
-            viewCart();
-        }
-
-        function viewCart() {
-            const cart = JSON.parse(localStorage.getItem("cart")) || [];
-            const cartContainer = document.getElementById("cartContainer");
-            cartContainer.innerHTML = ""; // Clear previous cart items
-
-            if (cart.length === 0) {
-                cartContainer.innerHTML = "<p>Your cart is empty.</p>";
-            } else {
-                const ul = document.createElement("ul");
-                cart.forEach(item => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                        <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;">
-                        ${item.name}
-                        <button onclick="removeFromCart('${item.name}')">Remove</button>
-                    `;
-                    ul.appendChild(li);
-                });
-                cartContainer.appendChild(ul);
-            }
-
-            document.getElementById("cartModal").style.display = "block";
-        }
-
-        function closeCart() {
-            document.getElementById("cartModal").style.display = "none";
-        }
-
-        function searchItems() {
-            const query = document.getElementById('searchBar').value.toLowerCase();
-            const listings = document.querySelectorAll('.listing');
-            listings.forEach(listing => {
-                const itemName = listing.querySelector('strong').innerText.toLowerCase();
-                listing.style.display = itemName.includes(query) ? 'block' : 'none';
-            });
-        }
+      }
     </script>
-</head>
-<body>
+  </head>
+
+  <body>
+    <!-- ==================== NAVIGATION BAR ==================== -->
     <header class="navbar">
-        <img src="images/logo.png" alt="Swapify Logo" class="nav-logo">
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="signin.html">Sign In</a>
-            <a href="signup.html">Sign Up</a>
-        </nav>
-        <div style="position: absolute; top: 10px; right: 20px; display: flex; gap: 10px;">
-            <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()" style="cursor: pointer;">
-            <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()" style="cursor: pointer;">
-        </div>
+      <img src="images/logo.png" alt="Swapify Logo" class="nav-logo" />
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="signin.html">Sign In</a>
+        <a href="signup.html">Sign Up</a>
+      </nav>
+      <div style="position: absolute; top: 10px; right: 20px; display: flex; gap: 10px;">
+        <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()" style="cursor: pointer;" />
+        <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()" style="cursor: pointer;" />
+      </div>
     </header>
+
+    <!-- ==================== LISTINGS HEADER & SEARCH ==================== -->
     <h1>Browse Listings</h1>
-    <input type="text" id="searchBar" placeholder="Search items..." onkeyup="searchItems()">
+    <input type="text" id="searchBar" placeholder="Search items..." onkeyup="searchItems()" />
+
+    <!-- ==================== PRODUCT LISTINGS ==================== -->
     <ul id="listings">
-        <li class="listing">
-            <img src="images/item1.jpg" alt="Item 1" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;">
-            <strong>Item 1</strong> - $10
-            <button onclick="addToCart('Item 1', 'images/item1.jpg')">Add to Cart</button>
-            <span onclick="addToFavorites(this, 'Item 1', 'images/item1.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
-        </li>
-        <li class="listing">
-            <img src="images/item2.jpg" alt="Item 2" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;">
-            <strong>Item 2</strong> - $15
-            <button onclick="addToCart('Item 2', 'images/item2.jpg')">Add to Cart</button>
-            <span onclick="addToFavorites(this, 'Item 2', 'images/item2.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
-        </li>
-        <li class="listing">
-            <img src="images/item3.jpg" alt="Item 3" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;">
-            <strong>Item 3</strong> - $20
-            <button onclick="addToCart('Item 3', 'images/item3.jpg')">Add to Cart</button>
-            <span onclick="addToFavorites(this, 'Item 3', 'images/item3.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
-        </li>
+      <li class="listing">
+        <img src="images/item1.jpg" alt="Item 1" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;" />
+        <strong>Item 1</strong> - $10
+        <button onclick="addToCart('Item 1', 'images/item1.jpg')">Add to Cart</button>
+        <span onclick="addToFavorites(this, 'Item 1', 'images/item1.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
+      </li>
+
+      <li class="listing">
+        <img src="images/item2.jpg" alt="Item 2" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;" />
+        <strong>Item 2</strong> - $15
+        <button onclick="addToCart('Item 2', 'images/item2.jpg')">Add to Cart</button>
+        <span onclick="addToFavorites(this, 'Item 2', 'images/item2.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
+      </li>
+
+      <li class="listing">
+        <img src="images/item3.jpg" alt="Item 3" class="listing-img" style="width: 150px; height: 150px; object-fit: cover;" />
+        <strong>Item 3</strong> - $20
+        <button onclick="addToCart('Item 3', 'images/item3.jpg')">Add to Cart</button>
+        <span onclick="addToFavorites(this, 'Item 3', 'images/item3.jpg')" style="cursor: pointer; font-size: 24px; color: black; background-color: white; border: 1px solid black; border-radius: 50%; padding: 5px;">&#9829;</span>
+      </li>
     </ul>
 
-    <!-- Cart Modal -->
+    <!-- ==================== CART MODAL ==================== -->
     <div id="cartModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 2px solid #ddd; padding: 20px; border-radius: 10px; z-index: 1000; max-width: 400px; text-align: center;">
-        <h2>Your Cart</h2>
-        <div id="cartContainer"></div>
-        <button onclick="closeCart()">Close</button>
+      <h2>Your Cart</h2>
+      <div id="cartContainer"></div>
+      <button onclick="closeCart()">Close</button>
     </div>
 
-    <!-- Favorites Modal -->
+    <!-- ==================== FAVORITES MODAL ==================== -->
     <div id="favoritesModal" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 2px solid #ddd; padding: 20px; border-radius: 10px; z-index: 1000; max-width: 400px; text-align: center;">
-        <h2>Your Favorites</h2>
-        <div id="favoritesContainer"></div>
-        <button onclick="closeFavorites()">Close</button>
-    </div
+      <h2>Your Favorites</h2>
+      <div id="favoritesContainer"></div>
+      <button onclick="closeFavorites()">Close</button>
+    </div>
+  </body>
+</html>
