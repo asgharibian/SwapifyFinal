@@ -8,7 +8,6 @@
   </head>
   <body>
 
-    <!-- ==================== SWAPIFY: NAVIGATION BAR ==================== -->
     <header class="navbar">
       <div class="nav-left">
         <img src="images/logo.png" alt="Swapify Logo" class="nav-logo" />
@@ -27,7 +26,6 @@
       </div>
     </header>
 
-    <!-- ==================== SWAPIFY: HERO SECTION ==================== -->
     <section class="hero">
       <div class="hero-background">
         <div class="sliding-images">
@@ -47,12 +45,10 @@
       </div>
     </section>
 
-    <!-- ==================== SWAPIFY: SEARCH BAR ==================== -->
     <section class="search-area">
       <input type="text" id="searchBar" placeholder="Search items..." onkeyup="searchItems()" />
     </section>
 
-    <!-- ==================== SWAPIFY: LISTINGS SECTION ==================== -->
     <main>
       <section class="recent-listings">
         <h2>Listed Recently</h2>
@@ -60,24 +56,20 @@
       </section>
     </main>
 
-    <!-- ==================== SWAPIFY: MODALS - CART ==================== -->
     <div id="cartModal" class="modal">
       <h2>Your Cart</h2>
       <div id="cartContainer"></div>
       <button onclick="closeCart()">Close</button>
     </div>
 
-    <!-- ==================== SWAPIFY: MODALS - FAVORITES ==================== -->
     <div id="favoritesModal" class="modal">
       <h2>Your Favorites</h2>
       <div id="favoritesContainer"></div>
       <button onclick="closeFavorites()">Close</button>
     </div>
 
-    <!-- ==================== SWAPIFY: SCRIPT SECTION ==================== -->
     <script>
 
-      // ==================== DOMContentLoaded Initialization ====================
       document.addEventListener("DOMContentLoaded", () => {
         const isLoggedIn = localStorage.getItem("loggedIn") === "true";
         const userName = localStorage.getItem("userName");
@@ -109,7 +101,6 @@
         });
       });
 
-      // ==================== AUTH: LOGOUT ====================
       function logout() {
         localStorage.removeItem("loggedIn");
         localStorage.removeItem("userName");
@@ -118,7 +109,6 @@
         window.location.href = "index.html";
       }
 
-      // ==================== NAVIGATION: POST REDIRECT ====================
       function redirectToPost() {
         const isLoggedIn = localStorage.getItem("loggedIn") === "true";
         if (!isLoggedIn) {
@@ -129,7 +119,6 @@
         }
       }
 
-      // ==================== CART: ADD ITEM ====================
       function handleAddToCart(name, image) {
         if (localStorage.getItem("loggedIn") !== "true") {
           alert("Please sign in to use the cart.");
@@ -142,7 +131,6 @@
         }
       }
 
-      // ==================== FAVORITES: ADD ITEM ====================
       function handleAddToFavorites(button, name, image) {
         if (localStorage.getItem("loggedIn") !== "true") {
           alert("Please sign in to use favorites.");
@@ -162,7 +150,6 @@
         }
       }
 
-      // ==================== LISTINGS: DELETE ====================
       function handleDeleteListing(button) {
         const listing = button.closest(".listing");
         const title = listing.querySelector("strong").innerText;
@@ -175,7 +162,6 @@
         }
       }
 
-      // ==================== CART: VIEW / DISPLAY ====================
       function viewCart() {
         const cart = JSON.parse(localStorage.getItem("cart")) || [];
         const cartContainer = document.getElementById("cartContainer");
@@ -208,12 +194,10 @@
         document.getElementById("cartModal").style.display = "block";
       }
 
-      // ==================== CART: CLOSE MODAL ====================
       function closeCart() {
         document.getElementById("cartModal").style.display = "none";
       }
 
-      // ==================== CART: REMOVE ITEM ====================
       function removeFromCart(name) {
         let cart = JSON.parse(localStorage.getItem("cart")) || [];
         cart = cart.filter(item => item.name !== name);
@@ -221,7 +205,6 @@
         viewCart();
       }
 
-      // ==================== FAVORITES: VIEW ====================
       function viewFavorites() {
         const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
         const favoritesContainer = document.getElementById("favoritesContainer");
@@ -246,12 +229,10 @@
         document.getElementById("favoritesModal").style.display = "block";
       }
 
-      // ==================== FAVORITES: CLOSE MODAL ====================
       function closeFavorites() {
         document.getElementById("favoritesModal").style.display = "none";
       }
 
-      // ==================== FAVORITES: REMOVE ITEM ====================
       function removeFromFavorites(name) {
         let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
         favorites = favorites.filter(item => item.name !== name);
@@ -259,7 +240,6 @@
         viewFavorites();
       }
 
-      // ==================== SEARCH: FILTER LISTINGS ====================
       function searchItems() {
         const query = document.getElementById("searchBar").value.toLowerCase();
         const listings = document.querySelectorAll(".listing");
