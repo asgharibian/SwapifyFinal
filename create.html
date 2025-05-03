@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Listing - Swapify</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-left">
+      <img src="images/logo.png" alt="Swapify Logo" class="nav-logo">
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="browse.html">Browse</a>
+        <a href="create.html">Post a Listing</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="form-container">
+    <h1>Create a New Listing</h1>
+    <form id="listingForm" class="form">
+      <input type="text" id="title" placeholder="Item Title" required>
+      <input type="text" id="price" placeholder="Price (e.g., 20)" required>
+      <input type="file" id="imageFile" accept="image/*" required>
+      <button type="submit">Post Listing</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('listingForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const title = document.getElementById('title').value;
+      const price = document.getElementById('price').value;
+      const file = document.getElementById('imageFile').files[0];
+      const ownerEmail = localStorage.getItem('loggedInEmail');
+
+      if (!ownerEmail) {
+        alert("You must be logged in to post a listing.");
+        window.location.href = "signin.html";
+        return;
+      }
+
+      if (!file) {
+        alert("Please select an image.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function () {
+        const image = reader.result; // base64 image
+        const listings = JSON.parse(localStorage.getItem("customListings")) || [];
+        listings.push({ title, price, image, ownerEmail });
+        localStorage.setItem("customListings", JSON.stringify(listings));
+        alert("Your listing has been posted!");
+        window.location.href = "index.html";
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>

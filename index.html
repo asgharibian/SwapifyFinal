@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Swapify - Marketplace</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+
+    <!-- ==================== SWAPIFY: NAVIGATION BAR ==================== -->
+    <header class="navbar">
+      <div class="nav-left">
+        <img src="images/logo.png" alt="Swapify Logo" class="nav-logo" />
+        <nav class="nav-links">
+          <a href="index.html">Home</a>
+          <a href="browse.html">Browse</a>
+          <a href="#" onclick="redirectToPost()">Post a Listing</a>
+        </nav>
+      </div>
+      <div class="nav-right" id="navUserSection">
+        <button onclick="window.location.href='signin.html'" id="signInBtn">
+          Sign In
+        </button>
+        <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()" />
+        <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()" />
+      </div>
+    </header>
+
+    <!-- ==================== SWAPIFY: HERO SECTION ==================== -->
+    <section class="hero">
+      <div class="hero-background">
+        <div class="sliding-images">
+          <img src="https://images.unsplash.com/photo-1540221652346-e5dd6b50f3e7" alt="Clothes" />
+          <img src="https://images.unsplash.com/photo-1599236755629-17aff66ccda0" alt="Sports Gear" />
+          <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c" alt="Tech" />
+          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff" alt="Shoes" />
+          <img src="https://images.unsplash.com/photo-1540221652346-e5dd6b50f3e7" alt="Clothes" />
+          <img src="https://images.unsplash.com/photo-1599236755629-17aff66ccda0" alt="Sports Gear" />
+          <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c" alt="Tech" />
+          <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff" alt="Shoes" />
+        </div>
+      </div>
+      <div class="hero-overlay">
+        <h1>Where Beautiful Things Are Designed, Bought, and Sold</h1>
+        <button class="cta-button" onclick="redirectToPost()">Start Selling</button>
+      </div>
+    </section>
+
+    <!-- ==================== SWAPIFY: SEARCH BAR ==================== -->
+    <section class="search-area">
+      <input type="text" id="searchBar" placeholder="Search items..." onkeyup="searchItems()" />
+    </section>
+
+    <!-- ==================== SWAPIFY: LISTINGS SECTION ==================== -->
+    <main>
+      <section class="recent-listings">
+        <h2>Listed Recently</h2>
+        <ul id="listings" class="product-grid"></ul>
+      </section>
+    </main>
+
+    <!-- ==================== SWAPIFY: MODALS - CART ==================== -->
+    <div id="cartModal" class="modal">
+      <h2>Your Cart</h2>
+      <div id="cartContainer"></div>
+      <button onclick="closeCart()">Close</button>
+    </div>
+
+    <!-- ==================== SWAPIFY: MODALS - FAVORITES ==================== -->
+    <div id="favoritesModal" class="modal">
+      <h2>Your Favorites</h2>
+      <div id="favoritesContainer"></div>
+      <button onclick="closeFavorites()">Close</button>
+    </div>
+
+    <!-- ==================== SWAPIFY: SCRIPT SECTION ==================== -->
+    <script>
+
+      // ==================== DOMContentLoaded Initialization ====================
+      document.addEventListener("DOMContentLoaded", () => {
+        const isLoggedIn = localStorage.getItem("loggedIn") === "true";
+        const userName = localStorage.getItem("userName");
+
+        if (isLoggedIn && userName) {
+          const navSection = document.getElementById("navUserSection");
+          navSection.innerHTML = `
+            <span style="font-weight: bold;">Welcome, ${userName.split(" ")[0]}</span>
+            <button onclick="logout()" style="margin-left: 10px;">Log Out</button>
+            <img src="images/heart-icon.png" alt="Favorites Icon" class="icon-img" onclick="viewFavorites()" />
+            <img src="images/cart-icon.png" alt="Cart Icon" class="icon-img" onclick="viewCart()" />
+          `;
+        }
+
+        const listings = document.getElementById("listings");
+        const customListings = JSON.parse(localStorage.getItem("customListings")) || [];
+
+        customListings.forEach(item => {
+          const li = document.createElement("li");
+          li.classList.add("listing");
+          li.innerHTML = `
+            <img src="${item.image}" alt="${item.title}" class="listing-img" />
+            <strong>${item.title}</strong> - $${item.price}
+            <button onclick="handleAddToCart('${item.title}', '${item.image}')">Add to Cart</button>
+            <span onclick="handleAddToFavorites(this, '${item.title}', '${item.image}')" class="favorite-icon">&#9829;</span>
+            <button onclick="handleDeleteListing(this)">Delete</button>
+          `;
+          listings.appendChild(li);
+        });
+      });
+
+      // ==================== AUTH: LOGOUT ====================
+      function logout() {
+        localStorage.removeItem("loggedIn");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("loggedInEmail");
+        alert("You have been logged out.");
+        window.location.href = "index.html";
+      }
+
+      // ==================== NAVIGATION: POST REDIRECT ====================
+      function redirectToPost() {
+        const isLoggedIn = localStorage.getItem("loggedIn") === "true";
+        if (!isLoggedIn) {
+          alert("Please sign in to post a listing.");
+          window.location.href = "signin.html";
+        } else {
+          window.location.href = "create.html";
+        }
+      }
+
+      // ==================== CART: ADD ITEM ====================
+      function handleAddToCart(name, image) {
+        if (localStorage.getItem("loggedIn") !== "true") {
+          alert("Please sign in to use the cart.");
+          window.location.href = "signin.html";
+        } else {
+          const cart = JSON.parse(localStorage.getItem("cart")) || [];
+          cart.push({ name, image });
+          localStorage.setItem("cart", JSON.stringify(cart));
+          alert(`${name} added to cart.`);
+        }
+      }
+
+      // ==================== FAVORITES: ADD ITEM ====================
+      function handleAddToFavorites(button, name, image) {
+        if (localStorage.getItem("loggedIn") !== "true") {
+          alert("Please sign in to use favorites.");
+          window.location.href = "signin.html";
+        } else {
+          const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+          const exists = favorites.find(item => item.name === name);
+          if (!exists) {
+            favorites.push({ name, image });
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+            button.style.color = "black";
+            button.style.backgroundColor = "red";
+            alert(`${name} added to favorites.`);
+          } else {
+            alert(`${name} is already in your favorites.`);
+          }
+        }
+      }
+
+      // ==================== LISTINGS: DELETE ====================
+      function handleDeleteListing(button) {
+        const listing = button.closest(".listing");
+        const title = listing.querySelector("strong").innerText;
+        if (confirm(`Are you sure you want to delete '${title}'?`)) {
+          listing.remove();
+          let listings = JSON.parse(localStorage.getItem("customListings")) || [];
+          listings = listings.filter(item => item.title !== title);
+          localStorage.setItem("customListings", JSON.stringify(listings));
+          alert("Listing deleted.");
+        }
+      }
+
+      // ==================== CART: VIEW / DISPLAY ====================
+      function viewCart() {
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        const cartContainer = document.getElementById("cartContainer");
+        cartContainer.innerHTML = "";
+
+        if (cart.length === 0) {
+          cartContainer.innerHTML = "<p>Your cart is empty.</p>";
+        } else {
+          const ul = document.createElement("ul");
+          cart.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;" />
+              ${item.name}
+              <button onclick="removeFromCart('${item.name}')">Remove</button>
+            `;
+            ul.appendChild(li);
+          });
+          cartContainer.appendChild(ul);
+
+          const checkoutBtn = document.createElement("button");
+          checkoutBtn.textContent = "Proceed to Checkout";
+          checkoutBtn.className = "checkout-button";
+          checkoutBtn.onclick = () => {
+            window.location.href = "payment.html";
+          };
+          cartContainer.appendChild(checkoutBtn);
+        }
+
+        document.getElementById("cartModal").style.display = "block";
+      }
+
+      // ==================== CART: CLOSE MODAL ====================
+      function closeCart() {
+        document.getElementById("cartModal").style.display = "none";
+      }
+
+      // ==================== CART: REMOVE ITEM ====================
+      function removeFromCart(name) {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        cart = cart.filter(item => item.name !== name);
+        localStorage.setItem("cart", JSON.stringify(cart));
+        viewCart();
+      }
+
+      // ==================== FAVORITES: VIEW ====================
+      function viewFavorites() {
+        const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        const favoritesContainer = document.getElementById("favoritesContainer");
+        favoritesContainer.innerHTML = "";
+
+        if (favorites.length === 0) {
+          favoritesContainer.innerHTML = "<p>Your favorites list is empty.</p>";
+        } else {
+          const ul = document.createElement("ul");
+          favorites.forEach(item => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+              <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; margin-right: 10px;" />
+              ${item.name}
+              <button onclick="removeFromFavorites('${item.name}')">Remove</button>
+            `;
+            ul.appendChild(li);
+          });
+          favoritesContainer.appendChild(ul);
+        }
+
+        document.getElementById("favoritesModal").style.display = "block";
+      }
+
+      // ==================== FAVORITES: CLOSE MODAL ====================
+      function closeFavorites() {
+        document.getElementById("favoritesModal").style.display = "none";
+      }
+
+      // ==================== FAVORITES: REMOVE ITEM ====================
+      function removeFromFavorites(name) {
+        let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+        favorites = favorites.filter(item => item.name !== name);
+        localStorage.setItem("favorites", JSON.stringify(favorites));
+        viewFavorites();
+      }
+
+      // ==================== SEARCH: FILTER LISTINGS ====================
+      function searchItems() {
+        const query = document.getElementById("searchBar").value.toLowerCase();
+        const listings = document.querySelectorAll(".listing");
+        listings.forEach(listing => {
+          const itemName = listing.querySelector("strong").innerText.toLowerCase();
+          listing.style.display = itemName.includes(query) ? "block" : "none";
+        });
+      }
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Swapify - Sign In</title>
+  <link rel="stylesheet" href="styles.css">
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("signInForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const user = users.find(u => u.email === email && u.password === password);
+
+        if (user) {
+          localStorage.setItem("loggedIn", "true");
+          localStorage.setItem("loggedInEmail", email);
+          localStorage.setItem("userName", user.name); // ✅ Save the name
+          alert("Sign-In successful!");
+          window.location.href = "index.html";
+        } else {
+          alert("Invalid email or password. Please try again.");
+        }
+      });
+
+      document.getElementById("forgotPassword").addEventListener("click", function() {
+        alert("Forgot Password functionality is not yet implemented!");
+      });
+    });
+  </script>
+</head>
+<body>
+  <!-- NAVIGATION BAR -->
+  <header class="navbar">
+    <div class="nav-left">
+      <img src="images/logo.png" alt="Swapify Logo" class="nav-logo">
+      <nav class="nav-links">
+        <a href="index.html">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- SIGN IN FORM -->
+  <main class="form-container">
+    <h1>Sign In</h1>
+    <form id="signInForm" class="form">
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+      
+      <button type="submit">Sign In</button>
+      <button id="forgotPassword" type="button" class="secondary-button">Forgot Password?</button>
+      
+      <p class="form-text">
+        Don't have an account? 
+        <a href="signup.html" style="color: var(--accent-color); text-decoration: none;">Create one</a>
+      </p>
+    </form>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="social-icons">
+      <a href="#"><img src="images/facebook-icon.png" alt="Facebook" class="social-icon"></a>
+      <a href="#"><img src="images/twitter-icon.png" alt="X (Twitter)" class="social-icon"></a>
+      <a href="#"><img src="images/instagram-icon.png" alt="Instagram" class="social-icon"></a>
+    </div>
+    <p>© 2025 Swapify. All rights reserved.</p>
+  </footer>
+</body>
+</html>
